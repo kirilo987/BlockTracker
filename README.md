@@ -65,7 +65,7 @@ Feel free to contribute to this project by submitting issues or pull requests on
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/kirilo987/BlockTracker/blob/master/MIT%20License) file for details.
 
 ---
 
