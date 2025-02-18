@@ -5,3 +5,4 @@ api-version: '1.21'
 authors: [ Kxysl1k ]
 description: A plugin that adds a special bone to interact with blocks and players. Plugin By Kxysl1k
 website: https://kxysl1k.netlify.app/
+depend: [CoreProtect]
