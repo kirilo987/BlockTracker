@@ -11,9 +11,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,7 +28,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
     private CoreProtectAPI coreProtect;
     private final NamespacedKey selectedBlockKey = new NamespacedKey(this, "selected_block");
     private final NamespacedKey wandKey = new NamespacedKey(this, "wand_item");
-    private final int CUSTOM_MODEL_DATA = 1001; // Унікальний ID текстури
+    private final int CUSTOM_MODEL_DATA = 1001; // Unique texture ID
 
     @Override
     public void onEnable() {
@@ -37,6 +39,8 @@ public class BlockTracker extends JavaPlugin implements Listener {
             return;
         }
         getServer().getPluginManager().registerEvents(this, this);
+        this.getCommand("getwand").setExecutor(new GetWandCommand(this));
+        registerCraftingRecipe();
     }
 
     private CoreProtectAPI getCoreProtect() {
@@ -46,6 +50,28 @@ public class BlockTracker extends JavaPlugin implements Listener {
         }
         CoreProtectAPI api = plugin.getAPI();
         return api.isEnabled() ? api : null;
+    }
+
+    private void registerCraftingRecipe() {
+        ItemStack wand = createGlowingWand();
+        ShapelessRecipe recipe = new ShapelessRecipe(new NamespacedKey(this, "glowing_wand"), wand);
+        recipe.addIngredient(Material.GLOW_INK_SAC);
+        recipe.addIngredient(Material.GLOWSTONE_DUST);
+        recipe.addIngredient(Material.BRUSH);
+        Bukkit.addRecipe(recipe);
+    }
+
+    @EventHandler
+    public void onCraftItem(CraftItemEvent event) {
+        if (event.getRecipe().getResult().isSimilar(createGlowingWand())) {
+            for (ItemStack item : event.getInventory().getMatrix()) {
+                if (isGlowingWand(item)) {
+                    event.setCancelled(true);
+                    event.getWhoClicked().sendMessage("§cЕмм... як ти має скрафтити чарівну палику з чарівної плачики?");
+                    return;
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -69,7 +95,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
                         blockLoc.getBlockX() + "," + blockLoc.getBlockY() + "," + blockLoc.getBlockZ() + " by " + lastUser);
                 updateWandLore(item, blockLoc, lastUser);
                 item.setItemMeta(meta);
-                player.sendMessage("§aТи вибрав блок на " + blockLoc.toVector());
+                player.sendMessage("§aВи вибрали блок на " + blockLoc.toVector());
             }
         } else if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             String storedData = item.getItemMeta().getPersistentDataContainer().get(selectedBlockKey, PersistentDataType.STRING);
@@ -84,7 +110,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
                 target.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 0));
                 player.sendMessage("§eГравець " + lastUser + " тепер світиться!");
             } else {
-                player.sendMessage("§cЦей гравець не онлайн або не знайдений.");
+                player.sendMessage("§cЦей гравець не в мережі або не знайдений.");
             }
         }
     }
@@ -101,7 +127,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
     }
 
     private boolean isGlowingWand(ItemStack item) {
-        if (item == null || item.getType() != Material.BONE) return false;
+        if (item == null || item.getType() != Material.BRUSH) return false;
         if (!item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         return meta.getPersistentDataContainer().has(wandKey, PersistentDataType.STRING) &&
@@ -116,11 +142,11 @@ public class BlockTracker extends JavaPlugin implements Listener {
     }
 
     public ItemStack createGlowingWand() {
-        ItemStack wand = new ItemStack(Material.BONE);
+        ItemStack wand = new ItemStack(Material.BRUSH);
         ItemMeta meta = wand.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§eЧарівна кісточка");
-            meta.setLore(List.of("§7Використай її, щоб вибрати блок!"));
+            meta.setDisplayName("§eЧарівна паличка");
+            meta.setLore(List.of("§7Використовуйте його, щоб вибрати блок!"));
             meta.getPersistentDataContainer().set(wandKey, PersistentDataType.STRING, "true");
             meta.setCustomModelData(CUSTOM_MODEL_DATA);
             wand.setItemMeta(meta);
