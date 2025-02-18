@@ -25,6 +25,7 @@ CoreProtect Glowing Wand is a Minecraft plugin for Paper 1.21 that allows player
 The wand is crafted using:
 - **1x Bone**
 - **1x Glowing Ink Sac**
+- **1x Glowstone Dust**
 
 ### Selecting a Block
 1. Right-click a block with the wand.
