@@ -28,7 +28,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
         // Перевірка наявності CoreProtect
         coreProtect = getCoreProtect();
         if (coreProtect == null) {
-            getLogger().severe("CoreProtect not found! Disabling plugin.");
+            getLogger().severe("CoreProtect не знайдено! Вимкнення плагіна.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -43,12 +43,12 @@ public class BlockTracker extends JavaPlugin implements Listener {
         recipe.setIngredient('B', Material.BONE);
         getServer().addRecipe(recipe);
 
-        getLogger().info("BonePlugin has been enabled!");
+        getLogger().info("BlockTracker увімкнено!");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("BonePlugin has been disabled!");
+        getLogger().info("BlockTracker вимкнено!");
     }
 
     // Отримання CoreProtect API
@@ -66,7 +66,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
     private ItemStack createSpecialBone() {
         ItemStack bone = new ItemStack(Material.BONE);
         ItemMeta meta = bone.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "Special Bone");
+        meta.setDisplayName(ChatColor.GOLD + "BlockTracker");
         bone.setItemMeta(meta);
         return bone;
     }
@@ -75,8 +75,8 @@ public class BlockTracker extends JavaPlugin implements Listener {
     private void updateBoneLore(ItemStack bone, BlockData blockData) {
         ItemMeta meta = bone.getItemMeta();
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Selected Block: " + blockData.getMaterial());
-        lore.add(ChatColor.GRAY + "Location: " + blockData.getLocation().getBlockX() + ", " +
+        lore.add(ChatColor.GRAY + "Вибраний блок: " + blockData.getMaterial());
+        lore.add(ChatColor.GRAY + "Розташування: " + blockData.getLocation().getBlockX() + ", " +
                 blockData.getLocation().getBlockY() + ", " + blockData.getLocation().getBlockZ());
         meta.setLore(lore);
         bone.setItemMeta(meta);
@@ -90,7 +90,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
 
         if (item != null && item.getType() == Material.BONE && item.hasItemMeta()) {
             ItemMeta meta = item.getItemMeta();
-            if (meta.getDisplayName().equals(ChatColor.GOLD + "Special Bone")) {
+            if (meta.getDisplayName().equals(ChatColor.GOLD + "BlockTracker")) {
                 if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                     // Вибір блоку
                     Block block = event.getClickedBlock();
@@ -102,7 +102,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
                             BlockData blockData = new BlockData(block.getType(), block.getLocation());
                             selectedBlocks.put(player.getUniqueId(), blockData);
                             updateBoneLore(item, blockData);
-                            player.sendMessage(ChatColor.GREEN + "Block selected: " + block.getType() + " at " +
+                            player.sendMessage(ChatColor.GREEN + "Вибрано блок: " + block.getType() + " at " +
                                     block.getLocation().getBlockX() + ", " + block.getLocation().getBlockY() + ", " +
                                     block.getLocation().getBlockZ());
                         }
