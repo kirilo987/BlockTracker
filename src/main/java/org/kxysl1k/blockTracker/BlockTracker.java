@@ -81,7 +81,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
 
         if (!isGlowingWand(item)) return;
 
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && player.isSneaking()) {
             Block block = event.getClickedBlock();
             if (block == null) return;
             Location blockLoc = block.getLocation();
