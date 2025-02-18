@@ -1,72 +1,62 @@
-# BlockTracker
+# CoreProtect Glowing Wand
 
-**BlockTracker** is a Minecraft plugin that allows players to track who placed a specific block in the game. It uses the **CoreProtect API** to retrieve block history and provides a convenient tool for analyzing block ownership.
+## Description
+CoreProtect Glowing Wand is a Minecraft plugin for Paper 1.21 that allows players to interact with blocks and track the last player who modified them using CoreProtect. The selected block's information is stored in a custom wand, and players can use it to highlight the last known user with a glowing effect.
 
-## Key Features
+## Features
+- **Custom Wand**: A special wand crafted from a bone and glowing ink sac.
+- **Block Selection**: Right-click a block to store its last interacting player.
+- **Player Highlighting**: Right-click a player to make them glow if they were the last one who modified the selected block.
+- **Custom Model Support**: The wand can have a custom texture using resource packs.
+- **Persistent Data**: Selected block information is stored in the item's metadata.
 
-- **Block Tracking**: Players can use a special stick ("Block Tracker") to find out who placed a specific block.
-- **Player Highlighting**: If the player who placed the block is online, they will be highlighted temporarily.
-- **Custom Item**: The plugin provides a custom stick item that is used to track blocks.
-- **Integration with CoreProtect**: The plugin relies on CoreProtect to fetch block history data.
-
-## How It Works
-
-1. **Block Tracker Stick**: Players can use the custom "Block Tracker" stick to interact with a block.
-2. **Block Lookup**: When a player right-clicks a block with the stick, the plugin queries CoreProtect to find out who placed the block.
-3. **Player Highlighting**: If the player who placed the block is online, their name is highlighted in the game for a few seconds.
-4. **Messages**: The plugin sends messages to the player, indicating the owner of the block or if the data is unavailable.
-
-## Usage
-
-1. **Give the Block Tracker Stick**:
-   - Use the `/give` command or a similar method to provide players with the custom "Block Tracker" stick.
-   - The stick is created using the `createTrackerStick()` method in the plugin.
-
-2. **Track a Block**:
-   - Right-click any block while holding the "Block Tracker" stick.
-   - The plugin will display the name of the player who placed the block (if available).
-
-3. **Player Highlighting**:
-   - If the player who placed the block is online, their name will be highlighted in yellow for a short duration.
-
-## Dependencies
-
-- **CoreProtect**: This plugin requires CoreProtect to be installed on the server. CoreProtect is used to fetch block history data.
-
-## Code Overview
-
-### Main Class: `BlockTracker.java`
-
-- **`onEnable()`**: Registers events and checks for CoreProtect availability. If CoreProtect is not found, the plugin disables itself.
-- **`onBlockInteract(PlayerInteractEvent event)`**: Handles the interaction event when a player right-clicks a block with the "Block Tracker" stick.
-- **`isTrackerStick(ItemStack item)`**: Checks if the item in the player's hand is the custom "Block Tracker" stick.
-- **`createTrackerStick()`**: Creates and returns the custom "Block Tracker" stick with a unique identifier.
-- **`highlightPlayer(Player player)`**: Temporarily highlights the player's name in the game.
-- **`getCoreProtect()`**: Retrieves the CoreProtect API instance.
+## Requirements
+- Minecraft Server running **Paper 1.21**
+- **CoreProtect** plugin installed and enabled
 
 ## Installation
+1. Download the plugin JAR file.
+2. Place it into the `plugins` folder of your Paper server.
+3. Ensure **CoreProtect** is installed.
+4. Restart your server.
 
-1. Download the plugin `.jar` file.
-2. Place the `.jar` file in your server's `plugins` folder.
-3. Ensure **CoreProtect** is installed and running on your server.
-4. Restart the server.
+## How to Use
+### Crafting the Wand
+The wand is crafted using:
+- **1x Bone**
+- **1x Glowing Ink Sac**
 
-## Commands
+### Selecting a Block
+1. Right-click a block with the wand.
+2. The wand stores the block's type, coordinates, and the last player who interacted with it.
+3. The information is displayed in the wand's lore.
 
-Currently, the plugin does not provide any commands. Players interact with blocks using the "Block Tracker" stick.
+### Highlighting a Player
+1. Right-click a player with the wand.
+2. If the player was the last one to interact with the selected block, they will glow for 5-10 seconds.
+
+## Custom Textures
+To apply a custom texture to the wand:
+1. Create a **resource pack**.
+2. Add a `custom_model_data` entry in the `item_model.json` file for `minecraft:bone`.
+3. Set `custom_model_data: 1001` for the wand's texture.
+4. Apply the resource pack to your server or client.
 
 ## Configuration
+No additional configuration is required. The plugin automatically integrates with CoreProtect.
 
-The plugin does not require any configuration files. It works out of the box with CoreProtect.
+## Troubleshooting
+- **Plugin Not Loading?**
+  - Check if **CoreProtect** is installed and running.
+  - Run `/plugins` and ensure `CoreProtect` and `BlockTracker` appear in green.
 
-## Contributing
-
-Feel free to contribute to this project by submitting issues or pull requests on GitHub.
-
+- **Wand Not Working?**
+  - Ensure the wand is crafted correctly.
+  - Check that CoreProtect is logging block interactions.
+  
 ## License
+This plugin is open-source and can be modified freely.
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/kirilo987/BlockTracker/blob/master/MIT%20License) file for details.
+## Contact
+For issues or feature requests, feel free to open a ticket on GitHub or contact the developer.
 
----
-
-Enjoy tracking blocks and uncovering the history of your Minecraft world with **BlockTracker**!
