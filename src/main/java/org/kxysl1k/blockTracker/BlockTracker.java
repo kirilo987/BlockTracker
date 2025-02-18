@@ -2,96 +2,157 @@ package org.kxysl1k.blockTracker;
 
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Team;
-import java.util.List;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
+import java.util.*;
 
 public class BlockTracker extends JavaPlugin implements Listener {
+
     private CoreProtectAPI coreProtect;
-    private final NamespacedKey customKey = new NamespacedKey(this, "tracker_stick");
+    private final Map<UUID, BlockData> selectedBlocks = new HashMap<>();
 
     @Override
     public void onEnable() {
-        Bukkit.getPluginManager().registerEvents(this, this);
+        // Перевірка наявності CoreProtect
         coreProtect = getCoreProtect();
         if (coreProtect == null) {
-            getLogger().warning("CoreProtect не знайдено! Плагін вимкнеться.");
+            getLogger().severe("CoreProtect not found! Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
+            return;
         }
+
+        // Реєстрація подій
+        getServer().getPluginManager().registerEvents(this, this);
+
+        // Додавання рецепту крафту спеціальної кісточки
+        ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(this, "special_bone"), createSpecialBone());
+        recipe.shape(" I ", "IBI", " I ");
+        recipe.setIngredient('I', Material.GLOW_INK_SAC);
+        recipe.setIngredient('B', Material.BONE);
+        getServer().addRecipe(recipe);
+
+        getLogger().info("BonePlugin has been enabled!");
     }
 
-    @EventHandler
-    public void onBlockInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (!isTrackerStick(event.getItem())) return;
-
-        Player player = event.getPlayer();
-        if (coreProtect != null) {
-            List<String[]> lookup = coreProtect.blockLookup(event.getClickedBlock(), 1);
-            if (lookup != null && !lookup.isEmpty()) {
-                String owner = lookup.get(0)[0];
-                Player target = Bukkit.getPlayer(owner);
-                if (target != null) {
-                    highlightPlayer(target);
-                    player.sendMessage(ChatColor.GREEN + "Цей блок був поставлений гравцем: " + ChatColor.AQUA + owner);
-                } else {
-                    player.sendMessage(ChatColor.RED + "Гравець, який поставив цей блок, не в мережі.");
-                }
-            } else {
-                player.sendMessage(ChatColor.RED + "Дані про блок не знайдено.");
-            }
-        }
+    @Override
+    public void onDisable() {
+        getLogger().info("BonePlugin has been disabled!");
     }
 
-    private boolean isTrackerStick(ItemStack item) {
-        if (item == null || item.getType() != Material.STICK) return false;
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return false;
-
-        PersistentDataContainer data = meta.getPersistentDataContainer();
-        return data.has(customKey, PersistentDataType.BYTE);
-    }
-
-    public ItemStack createTrackerStick() {
-        ItemStack stick = new ItemStack(Material.STICK);
-        ItemMeta meta = stick.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(ChatColor.YELLOW + "Трекер Блоків");
-            meta.setCustomModelData(1);
-            meta.getPersistentDataContainer().set(customKey, PersistentDataType.BYTE, (byte) 1);
-            stick.setItemMeta(meta);
-        }
-        return stick;
-    }
-
-    private void highlightPlayer(Player player) {
-        Team team = player.getScoreboard().registerNewTeam("highlight");
-        team.setColor(ChatColor.YELLOW);
-        team.addEntry(player.getName());
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                team.unregister();
-            }
-        }.runTaskLater(this, 100L);
-    }
-
+    // Отримання CoreProtect API
     private CoreProtectAPI getCoreProtect() {
-        CoreProtect cp = (CoreProtect) getServer().getPluginManager().getPlugin("CoreProtect");
-        return (cp != null) ? cp.getAPI() : null;
+        if (Bukkit.getPluginManager().getPlugin("CoreProtect") instanceof CoreProtect) {
+            CoreProtect coreProtect = (CoreProtect) Bukkit.getPluginManager().getPlugin("CoreProtect");
+            if (coreProtect.getAPI().APIVersion() == 6) {
+                return coreProtect.getAPI();
+            }
+        }
+        return null;
+    }
+
+    // Створення спеціальної кісточки
+    private ItemStack createSpecialBone() {
+        ItemStack bone = new ItemStack(Material.BONE);
+        ItemMeta meta = bone.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "Special Bone");
+        bone.setItemMeta(meta);
+        return bone;
+    }
+
+    // Оновлення опису кісточки
+    private void updateBoneLore(ItemStack bone, BlockData blockData) {
+        ItemMeta meta = bone.getItemMeta();
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Selected Block: " + blockData.getMaterial());
+        lore.add(ChatColor.GRAY + "Location: " + blockData.getLocation().getBlockX() + ", " +
+                blockData.getLocation().getBlockY() + ", " + blockData.getLocation().getBlockZ());
+        meta.setLore(lore);
+        bone.setItemMeta(meta);
+    }
+
+    // Обробка подій взаємодії гравця
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+
+        if (item != null && item.getType() == Material.BONE && item.hasItemMeta()) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta.getDisplayName().equals(ChatColor.GOLD + "Special Bone")) {
+                if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    // Вибір блоку
+                    Block block = event.getClickedBlock();
+                    if (block != null) {
+                        List<String[]> lookup = coreProtect.blockLookup(block, 86400); // Перевірка за останній день
+                        if (!lookup.isEmpty()) {
+                            String[] data = lookup.get(0);
+                            String playerName = data[1]; // Останній гравець, який взаємодіяв з блоком
+                            BlockData blockData = new BlockData(block.getType(), block.getLocation());
+                            selectedBlocks.put(player.getUniqueId(), blockData);
+                            updateBoneLore(item, blockData);
+                            player.sendMessage(ChatColor.GREEN + "Block selected: " + block.getType() + " at " +
+                                    block.getLocation().getBlockX() + ", " + block.getLocation().getBlockY() + ", " +
+                                    block.getLocation().getBlockZ());
+                        }
+                    }
+                } else if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                    // Підсвічування гравця
+                    BlockData blockData = selectedBlocks.get(player.getUniqueId());
+                    if (blockData != null) {
+                        Player target = getTargetPlayer(player);
+                        if (target != null) {
+                            List<String[]> lookup = coreProtect.blockLookup((Block) blockData.getLocation(), 86400);
+                            if (!lookup.isEmpty()) {
+                                String[] data = lookup.get(0);
+                                String playerName = data[1];
+                                if (playerName.equals(target.getName())) {
+                                    target.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 1)); // Підсвічування на 5 секунд
+                                    player.sendMessage(ChatColor.GREEN + target.getName() + " is glowing now!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Отримання цільового гравця
+    private Player getTargetPlayer(Player player) {
+        return player.getWorld().getPlayers().stream()
+                .filter(p -> p.getLocation().distance(player.getLocation()) < 5)
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Клас для зберігання даних про блок
+    private static class BlockData {
+        private final Material material;
+        private final Location location;
+
+        public BlockData(Material material, Location location) {
+            this.material = material;
+            this.location = location;
+        }
+
+        public Material getMaterial() {
+            return material;
+        }
+
+        public Location getLocation() {
+            return location;
+        }
     }
 }

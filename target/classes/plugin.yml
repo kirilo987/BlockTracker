@@ -1,7 +1,7 @@
 name: BlockTracker
-version: '1.0-SNAPSHOT'
+version: '1.3'
 main: org.kxysl1k.blockTracker.BlockTracker
 api-version: '1.21'
 authors: [ Kxysl1k ]
-description: Plugin By Kxysl1k
+description: A plugin that adds a special bone to interact with blocks and players. Plugin By Kxysl1k
 website: https://kxysl1k.netlify.app/
