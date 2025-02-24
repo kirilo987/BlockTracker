@@ -145,7 +145,7 @@ public class BlockTracker extends JavaPlugin implements Listener {
         ItemStack wand = new ItemStack(Material.BRUSH);
         ItemMeta meta = wand.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§eЧарівна паличка");
+            meta.setDisplayName("§eЧарівна паличка§f");
             meta.setLore(List.of("§7Використовуйте його, щоб вибрати блок!"));
             meta.getPersistentDataContainer().set(wandKey, PersistentDataType.STRING, "true");
             meta.setCustomModelData(CUSTOM_MODEL_DATA);
